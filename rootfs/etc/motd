@@ -1,0 +1,12 @@
+
+Welcome to Palpable OS!
+
+Documentation: https://palpable.technology/docs
+Dashboard:     https://palpable.technology/dashboard
+Support:       https://palpable.technology/support
+
+Service commands:
+  systemctl status palpable    - Check service status
+  journalctl -u palpable -f    - View live logs
+  i2cdetect -y 1               - Scan for connected sensors
+
