@@ -49,8 +49,9 @@ DISTRO=8 # 6=Bullseye, 7=Bookworm, 8=Trixie, 9=Forky
 PTTYPE='msdos'
 FSTYPE='ext4'
 VARIANT=
-GITBRANCH='master'
-GITOWNER='MichaIng'
+GITBRANCH=${G_GITBRANCH:-'master'}
+GITOWNER=${G_GITOWNER:-'MichaIng'}
+GITREPO=${G_GITREPO:-'DietPi'}
 EDITION=
 SUFFIX=
 SKIP_ARCHIVE=0
@@ -471,7 +472,7 @@ cat << _EOF_ > rootfs/etc/rc.local
 #!/bin/dash
 {
 infocmp "\$TERM" > /dev/null 2>&1 || { echo "[ WARN ] Unsupported TERM=\"\$TERM\", switching to TERM=\"dumb\""; export TERM=dumb; }
-export GITOWNER='$GITOWNER' GITBRANCH='$GITBRANCH' HW_MODEL='$HW_MODEL' IMAGE_CREATOR=0 PREIMAGE_INFO=0 WIFI_REQUIRED=1 DISTRO_TARGET=$DISTRO TEST_KERNEL=$TEST_KERNEL TEST_UBOOT=$TEST_UBOOT RK35XX_MAINLINE=$RK35XX_MAINLINE TMPDIR='/tmp'
+export GITOWNER='$GITOWNER' GITBRANCH='$GITBRANCH' GITREPO='$GITREPO' HW_MODEL='$HW_MODEL' IMAGE_CREATOR=0 PREIMAGE_INFO=0 WIFI_REQUIRED=1 DISTRO_TARGET=$DISTRO TEST_KERNEL=$TEST_KERNEL TEST_UBOOT=$TEST_UBOOT RK35XX_MAINLINE=$RK35XX_MAINLINE TMPDIR='/tmp'
 echo '[ INFO ] Running DietPi-Installer for $G_GITOWNER/$G_GITBRANCH'
 bash -c "\$(curl -sSf 'https://raw.githubusercontent.com/$G_GITOWNER/${G_GITREPO}/$G_GITBRANCH/.build/images/dietpi-installer')" || { echo '[FAILED] DietPi-Installer failed, shutting down ...'; journalctl -n 25; df -h; free -h; systemctl start poweroff.target; exit 1; }
 > /success

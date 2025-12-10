@@ -127,8 +127,9 @@ _EOF_
 	done
 	unset -v aAPT_PREREQS
 
-	# Set Git owner
+	# Set Git owner and repo
 	GITOWNER=${GITOWNER:-MichaIng}
+	GITREPO=${GITREPO:-DietPi}
 
 	# Select Git branch
 	if [[ ! $GITBRANCH ]]
@@ -153,7 +154,7 @@ _EOF_
 	#------------------------------------------------------------------------------------------------
 	# NB: We have to manually handle errors, until DietPi-Globals are successfully loaded.
 	# Download
-	if ! curl -sSf "https://raw.githubusercontent.com/$GITOWNER/${G_GITREPO:=DietPi}/$GITBRANCH/dietpi/func/dietpi-globals" -o dietpi-globals
+	if ! curl -sSf "https://raw.githubusercontent.com/$GITOWNER/$GITREPO/$GITBRANCH/dietpi/func/dietpi-globals" -o dietpi-globals
 	then
 		echo -e '[FAILED] Unable to download dietpi-globals. Aborting...\n'
 		exit 1
@@ -178,7 +179,8 @@ _EOF_
 	# Apply Git info
 	G_GITOWNER=$GITOWNER
 	G_GITBRANCH=$GITBRANCH
-	unset -v GITOWNER GITBRANCH
+	G_GITREPO=$GITREPO
+	unset -v GITOWNER GITBRANCH GITREPO
 
 	# Detect the distro version of this operating system
 	read -r distro < /etc/debian_version
