@@ -51,11 +51,12 @@ jobs:
       - name: Rename and compress image
         run: |
           echo "Finding built image..."
-          # Find the generated image file
-          IMAGE=$(find . -maxdepth 1 -name "DietPi_RPi-ARMv8*.img" -type f | head -n 1)
+          # Find the generated image file (search for any DietPi RPi image)
+          IMAGE=$(find . -maxdepth 1 -name "DietPi_RPi*.img" -type f | head -n 1)
 
           if [ -z "$IMAGE" ]; then
             echo "Error: No image file found!"
+            ls -la *.img || echo "No .img files found"
             exit 1
           fi
 
