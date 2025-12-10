@@ -53,10 +53,10 @@
 	# - Apply override LC_ALL and default LANG for current script
 	export LC_ALL='C.UTF-8' LANG='C.UTF-8'
 
-	# Set $PATH variable to include all expected default binary locations, since we don't know the current system setup: https://github.com/MichaIng/DietPi/issues/3206
+	# Set $PATH variable to include all expected default binary locations, since we don't know the current system setup: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/3206
 	export PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 
-	# Mount all filesystems defined in /etc/fstab without "noauto" option: https://github.com/MichaIng/DietPi/issues/5174
+	# Mount all filesystems defined in /etc/fstab without "noauto" option: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/5174
 	mount -a
 
 	# Assure that /tmp is a tmpfs of at least 512 MiB
@@ -68,15 +68,15 @@
 	fi
 
 	# Work inside /tmp tmpfs to reduce disk I/O and speed up download and unpacking
-	# - Save full script path beforehand: https://github.com/MichaIng/DietPi/pull/2341#discussion_r241784962
+	# - Save full script path beforehand: https://github.com/MichaIng/${G_GITREPO:=DietPi}/pull/2341#discussion_r241784962
 	FP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
 	cd /tmp || exit 1
 
 	# APT pre-configuration
 	# - Remove unwanted sources
-	#	RPi: https://github.com/MichaIng/DietPi/issues/4083
+	#	RPi: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/4083
 	rm -fv /etc/apt/sources.list.d/vscode.list /etc/apt/trusted.gpg.d/microsoft.gpg /etc/apt/preferences.d/3rd_parties.pref
-	#	Meveric: https://github.com/MichaIng/DietPi/issues/1285#issuecomment-355759321
+	#	Meveric: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/1285#issuecomment-355759321
 	[[ -f '/etc/apt/sources.list.d/deb-multimedia.list' ]] && rm -v /etc/apt/sources.list.d/deb-multimedia.list
 	[[ -f '/etc/apt/preferences.d/deb-multimedia-pin-99' ]] && rm -v /etc/apt/preferences.d/deb-multimedia-pin-99
 	[[ -f '/etc/apt/preferences.d/backports' ]] && rm -v /etc/apt/preferences.d/backports
@@ -84,7 +84,7 @@
 	[[ -f '/etc/apt/sources.list.d/openmediavault.list' ]] && rm -v /etc/apt/sources.list.d/openmediavault.list
 	# - Remove all configs except debconf pre-configuration: It does not work until apt-utils is installed but shall work as fast as it is.
 	find /etc/apt/apt.conf.d -type f ! -name '70debconf' -exec rm -v {} +
-	# - Apply wanted APT configs: Overwritten by DietPi code archive: https://raw.githubusercontent.com/MichaIng/DietPi/dev/rootfs/etc/apt/apt.conf.d/97dietpi
+	# - Apply wanted APT configs: Overwritten by DietPi code archive: https://raw.githubusercontent.com/MichaIng/${G_GITREPO:=DietPi}/dev/rootfs/etc/apt/apt.conf.d/97dietpi
 	cat << '_EOF_' > /etc/apt/apt.conf.d/97dietpi
 APT::Install-Recommends "false";
 APT::Install-Suggests "false";
@@ -153,7 +153,7 @@ _EOF_
 	#------------------------------------------------------------------------------------------------
 	# NB: We have to manually handle errors, until DietPi-Globals are successfully loaded.
 	# Download
-	if ! curl -sSf "https://raw.githubusercontent.com/$GITOWNER/DietPi/$GITBRANCH/dietpi/func/dietpi-globals" -o dietpi-globals
+	if ! curl -sSf "https://raw.githubusercontent.com/$GITOWNER/${G_GITREPO:=DietPi}/$GITBRANCH/dietpi/func/dietpi-globals" -o dietpi-globals
 	then
 		echo -e '[FAILED] Unable to download dietpi-globals. Aborting...\n'
 		exit 1
@@ -526,7 +526,7 @@ _EOF_
 
 		G_DIETPI-NOTIFY 2 "Selected hardware model ID: $G_HW_MODEL"
 
-		# Check for partition table: https://github.com/MichaIng/DietPi/issues/5691
+		# Check for partition table: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/5691
 		local BOOT_DEVICE=$(lsblk -npo PKNAME "$(findmnt -Ufvnro SOURCE -T /boot)")
 		# - Ignore for containers
 		if [[ ! $BOOT_DEVICE && $G_HW_MODEL != 75 ]]
@@ -646,7 +646,7 @@ _EOF_
 		G_DIETPI-NOTIFY 3 "$G_PROGRAM_NAME" "[$SETUP_STEP] Downloading and installing DietPi source code"; ((SETUP_STEP++))
 		#------------------------------------------------------------------------------------------------
 
-		G_EXEC_DESC='Downloading source code' G_EXEC curl -sSfLO "https://github.com/$G_GITOWNER/DietPi/archive/$G_GITBRANCH.tar.gz"
+		G_EXEC_DESC='Downloading source code' G_EXEC curl -sSfLO "https://github.com/$G_GITOWNER/${G_GITREPO:=DietPi}/archive/$G_GITBRANCH.tar.gz"
 		local dir="DietPi-${G_GITBRANCH//\//-}" # GitHub translates forward slashes into dashes
 		[[ -d $dir ]] && G_EXEC_DESC='Removing old source code' G_EXEC rm -R "$dir"
 		G_EXEC_DESC='Unpacking source code' G_EXEC tar xf "${G_GITBRANCH##*/}.tar.gz" # Support for Git branch names with forward slashes
@@ -704,12 +704,12 @@ _EOF_
 			G_EXEC mv "$dir/.build/images/U-Boot/dietpi-initramfs_cleanup" /etc/kernel/postinst.d/dietpi-initramfs_cleanup
 			G_EXEC ln -sf /etc/kernel/post{inst,rm}.d/dietpi-initramfs_cleanup
 
-			# Odroid C2: Fix USB device detection: https://github.com/MichaIng/DietPi/issues/5963
+			# Odroid C2: Fix USB device detection: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/5963
 			if (( $G_HW_MODEL == 12 ))
 			then
 				G_EXEC sed --follow-symlinks -i 's/coherent_pool=2M/coherent_pool=2M usbcore.autosuspend=-1/' /boot/boot.cmd
 
-			# Odroid N2/HC4: Enable USB boot via petitboot support: https://github.com/MichaIng/DietPi/issues/5634
+			# Odroid N2/HC4: Enable USB boot via petitboot support: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/5634
 			elif [[ $G_HW_MODEL =~ ^(15|17)$ ]]
 			then
 				G_EXEC sed --follow-symlinks -i '1i[main]' /boot/dietpiEnv.txt
@@ -729,7 +729,7 @@ setenv rootuuid "true"' /boot/boot.cmd
 				# shellcheck disable=SC2016
 				G_EXEC sed --follow-symlinks -i '/test -e/s/fixup.scr;/fixup.scr || test "${petitboot_active}" = "1";/' /boot/boot.cmd
 
-				# Odroid N2: Assure that hardware random generator driver is loaded as early as possible to prevent rngd failures: https://github.com/MichaIng/DietPi/issues/6483
+				# Odroid N2: Assure that hardware random generator driver is loaded as early as possible to prevent rngd failures: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/6483
 				(( $G_HW_MODEL == 15 )) && G_EXEC eval 'echo '\''meson_rng'\'' > /etc/modules-load.d/dietpi-hwrng.conf'
 
 			# Rockchip 64-bit
@@ -812,7 +812,7 @@ setenv rootuuid "true"' /boot/boot.cmd
 				G_EXEC sed --follow-symlinks -i '/^overlay_path/d' /boot/dietpiEnv.txt
 				G_CONFIG_INJECT 'overlay_prefix=' 'overlay_prefix=rockchip' /boot/dietpiEnv.txt
 				G_CONFIG_INJECT 'overlays=' 'overlays=uart2' /boot/dietpiEnv.txt
-				# ASUS Tinker Board: https://github.com/MichaIng/DietPi/issues/5554
+				# ASUS Tinker Board: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/5554
 				G_EXEC sed --follow-symlinks -i -e 's/ttyAML0/ttyS2/' -e '/^extraargs=/s/$/ systemd.unified_cgroup_hierarchy=0/' /boot/dietpiEnv.txt
 
 			# Allwinner 64-bit
@@ -975,8 +975,8 @@ setenv rootuuid "true"' /boot/boot.cmd
 				aPACKAGES_REQUIRED_INSTALL+=('raspberrypi-archive-keyring')
 			fi
 			# Block packages from RPi desktop which conflict with a native LXDE desktop:
-			# - https://github.com/MichaIng/DietPi/issues/1558#issuecomment-691206284
-			# - https://github.com/MichaIng/DietPi/issues/4687
+			# - https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/1558#issuecomment-691206284
+			# - https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/4687
 			G_EXEC eval 'cat << '\''_EOF_'\'' > /etc/apt/preferences.d/dietpi-raspberrypi
 Package: src:openbox src:obconf src:pcmanfm src:libfm src:gtk* src:lx*
 Pin: origin archive.raspberrypi.com
@@ -995,7 +995,7 @@ _EOF_'
 		# Replace usrmerge with usr-is-merged now, with perl + perl-modules this frees a notable amount of space!
 		dpkg-query -s usrmerge &> /dev/null && G_AGP usrmerge
 
-		# @MichaIng https://github.com/MichaIng/DietPi/pull/1266/files
+		# @MichaIng https://github.com/MichaIng/${G_GITREPO:=DietPi}/pull/1266/files
 		G_DIETPI-NOTIFY 2 'Marking all packages as auto-installed first, to allow effective autoremove afterwards'
 		local apackages=()
 		mapfile -t apackages < <(apt-mark showmanual)
@@ -1086,7 +1086,7 @@ _EOF_'
 			if [[ $G_HW_MODEL =~ ^(61|62|70)$ ]]
 			then
 				aPACKAGES_REQUIRED_INSTALL+=('haveged')
-				# https://github.com/MichaIng/DietPi/issues/4710
+				# https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/4710
 				if (( $G_HW_ARCH == 2 ))
 				then
 					G_DIETPI-NOTIFY 2 'Applying workaround for haveged entropy daemon bug: https://bugs.debian.org/985196'
@@ -1102,7 +1102,7 @@ _EOF_'
 		# Assure that dir for additional sources is present
 		G_EXEC mkdir -p /etc/apt/sources.list.d
 
-		### Kernel/bootloader/initramfs packages: We need to install those directly to allow G_AGA() autoremove possible older packages later: https://github.com/MichaIng/DietPi/issues/1285#issuecomment-354602594
+		### Kernel/bootloader/initramfs packages: We need to install those directly to allow G_AGA() autoremove possible older packages later: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/1285#issuecomment-354602594
 
 		# PCs and VMs
 		if [[ $G_HW_MODEL =~ ^(20|21)$ ]]
@@ -1327,7 +1327,7 @@ fi' /boot/boot.cmd
 			# Flash U-Boot
 			/boot/dietpi/func/dietpi-set_hardware flash-u-boot-mmc "$BOOT_DEVICE"
 
-			# Radxa Zero: Enable USB OTG OOTB: https://github.com/MichaIng/DietPi/issues/5931
+			# Radxa Zero: Enable USB OTG OOTB: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/5931
 			if (( $G_HW_MODEL == 74 ))
 			then
 				G_AGI device-tree-compiler
@@ -1513,7 +1513,7 @@ _EOF_
 		# Armbian
 		elif [[ $G_HW_MODEL != 75 && $(dpkg-query -Wf '${Package} ') == *'armbian'* ]]
 		then
-			# Prevent any unintended packages from being installed from Armbian's APT repository, like base-files: https://github.com/MichaIng/DietPi/issues/6227#issuecomment-1713688577
+			# Prevent any unintended packages from being installed from Armbian's APT repository, like base-files: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/6227#issuecomment-1713688577
 			cat << '_EOF_' > /etc/apt/preferences.d/dietpi-armbian
 Package: *
 Pin: origin apt.armbian.com
@@ -1602,7 +1602,7 @@ _EOF_
 				# Disable "predictable" network interface names
 				G_CONFIG_INJECT 'extraargs=' 'extraargs=fsck.repair=yes net.ifnames=0' /boot/armbianEnv.txt
 
-				# Disable bootsplash logo, as we removed the file above: https://github.com/MichaIng/DietPi/issues/3932#issuecomment-852376681
+				# Disable bootsplash logo, as we removed the file above: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/3932#issuecomment-852376681
 				G_CONFIG_INJECT 'bootlogo=' 'bootlogo=false' /boot/armbianEnv.txt
 
 				# Reset default kernel log verbosity, reduced to "1" on most Armbian images
@@ -1726,7 +1726,7 @@ _EOF_
 		# shellcheck disable=SC2114
 		rm -Rfv /etc/{motd,profile,update-motd.d,issue{,.net}} /root /home /media /var/mail
 		G_AGI --reinstall base-files # Restore /etc/{update-motd.d,issue{,.net}} /root /home
-		[[ -L '/var/lock' ]] || { [[ -d '/var/lock' ]] && G_EXEC rm -R /var/lock; G_EXEC ln -s /run/lock /var/lock; } # Armbian images currently ship with this as directory (bug), and postinst fails migrating it to symlink => /run/lock if that directory has content: https://github.com/MichaIng/DietPi/issues/6407
+		[[ -L '/var/lock' ]] || { [[ -d '/var/lock' ]] && G_EXEC rm -R /var/lock; G_EXEC ln -s /run/lock /var/lock; } # Armbian images currently ship with this as directory (bug), and postinst fails migrating it to symlink => /run/lock if that directory has content: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/6407
 		G_EXEC /var/lib/dpkg/info/base-files.postinst configure # Restore /root/.{profile,bashrc} /etc/{motd,profile} /media /var/mail
 
 		G_DIETPI-NOTIFY 2 'Deleting list of known users and groups, not required by DietPi'
@@ -1778,7 +1778,7 @@ _EOF_
 		# Source code and Linux headers
 		[[ -d '/usr/src' ]] && G_EXEC rm -Rf /usr/src/{,.??,.[^.]}*
 
-		# Documentation dirs: https://github.com/MichaIng/DietPi/issues/3259
+		# Documentation dirs: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/3259
 		#[[ -d '/usr/share/man' ]] && G_EXEC rm -R /usr/share/man
 		#[[ -d '/usr/share/doc' ]] && G_EXEC rm -R /usr/share/doc
 		#[[ -d '/usr/share/doc-base' ]] && G_EXEC rm -R /usr/share/doc-base
@@ -1876,12 +1876,12 @@ _EOF_
 		[[ -f '/etc/udev/rules.d/70-rename-lan.rules' ]] && G_EXEC rm /etc/udev/rules.d/70-rename-lan.rules # NanoPi R2S/R2C: https://github.com/armbian/build/blob/main/config/boards/nanopi-r2s.csc, https://github.com/armbian/build/blob/main/config/boards/nanopi-r2c.csc
 		[[ -f '/etc/udev/rules.d/70-persistent-net.rules' ]] && G_EXEC rm /etc/udev/rules.d/70-persistent-net.rules # NanoPi R5S/R6S: https://github.com/armbian/build/blob/main/config/boards/nanopi-r5s.csc, https://github.com/armbian/build/blob/main/config/boards/nanopi-r6s.conf
 
-		# - OMV: https://github.com/MichaIng/DietPi/issues/2994
+		# - OMV: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/2994
 		[[ -d '/etc/openmediavault' ]] && G_EXEC rm -R /etc/openmediavault
 		G_EXEC rm -f /etc/cron.*/openmediavault*
 		G_EXEC rm -f /usr/sbin/omv-*
 
-		# - RPi specific: https://github.com/MichaIng/DietPi/issues/1631#issuecomment-373965406
+		# - RPi specific: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/1631#issuecomment-373965406
 		[[ -f '/etc/profile.d/wifi-country.sh' ]] && G_EXEC rm /etc/profile.d/wifi-country.sh
 		[[ -f '/etc/sudoers.d/010_pi-nopasswd' ]] && G_EXEC rm /etc/sudoers.d/010_pi-nopasswd
 		[[ -d '/etc/systemd/system/dhcpcd.service.d' ]] && G_EXEC rm -R /etc/systemd/system/dhcpcd.service.d # https://github.com/RPi-Distro/pi-gen/blob/master/stage3/01-tweaks/00-run.sh
@@ -1892,7 +1892,7 @@ _EOF_
 		[[ -d '/etc/systemd/system/rc.local.service.d' ]] && G_EXEC rm -R /etc/systemd/system/rc.local.service.d
 		#	Below required if DietPi-Installer is executed from chroot/container, so RPi firstrun scripts are not executed
 		[[ -f '/etc/init.d/resize2fs_once' ]] && G_EXEC rm /etc/init.d/resize2fs_once # https://github.com/RPi-Distro/pi-gen/blob/master/stage2/01-sys-tweaks/files/resize2fs_once
-		# - Remove all autologin configs for all TTYs: https://github.com/MichaIng/DietPi/issues/3570#issuecomment-648988475, https://github.com/MichaIng/DietPi/issues/3628#issuecomment-653693758
+		# - Remove all autologin configs for all TTYs: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/3570#issuecomment-648988475, https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/3628#issuecomment-653693758
 		G_EXEC rm -f /etc/systemd/system/*getty@*.service.d/*autologin*.conf
 		G_EXEC rm -f /lib/systemd/system/*getty@*.service.d/override.conf # Orange Pi images
 
@@ -1934,7 +1934,7 @@ _EOF_
 		G_EXEC ln -sf /etc/profile.d/bash_completion.sh /etc/bashrc.d/dietpi-bash_completion.sh
 
 		#-----------------------------------------------------------------------------------
-		# setuid bit for sudo: https://github.com/MichaIng/DietPi/issues/794
+		# setuid bit for sudo: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/794
 		G_EXEC_DESC='Setting setuid bit for "sudo" executable' G_EXEC chmod 4755 /usr/bin/sudo
 
 		#-----------------------------------------------------------------------------------
@@ -1977,7 +1977,7 @@ _EOF_'
 		G_AGP rfkill
 		[[ -d '/var/lib/systemd/rfkill' ]] && G_EXEC rm -R /var/lib/systemd/rfkill
 
-		G_DIETPI-NOTIFY 2 'Removing all systemd-networkd configs, since DietPi uses ifupdown by default' # https://github.com/MichaIng/DietPi/issues/5871
+		G_DIETPI-NOTIFY 2 'Removing all systemd-networkd configs, since DietPi uses ifupdown by default' # https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/5871
 		G_EXEC rm -Rf /etc/systemd/network/{,.??,.[^.]}*
 
 		G_DIETPI-NOTIFY 2 'Avoid "predictable" network interface names'
@@ -1995,7 +1995,7 @@ _EOF_'
 		# ifupdown starts the daemon outside of systemd, the enabled systemd unit just throws an error on boot due to missing dbus and with dbus might interfere with ifupdown
 		systemctl -q is-enabled wpa_supplicant 2> /dev/null && G_EXEC systemctl disable wpa_supplicant
 
-		# Removing all network configs: https://github.com/MichaIng/DietPi/issues/6067
+		# Removing all network configs: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/6067
 		G_EXEC rm -Rf /etc/network/interfaces{,.d/{,.??,.[^.]}*}
 
 		if (( $G_HW_MODEL != 75 ))
@@ -2219,7 +2219,7 @@ _EOF_'
 		then
 			G_EXEC_DESC='Removing foreign i386 DPKG architecture' G_EXEC dpkg --remove-architecture i386
 
-			# Fix GRUB install device: https://github.com/MichaIng/DietPi/issues/3700
+			# Fix GRUB install device: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/3700
 			dpkg-query -s grub-pc &> /dev/null && G_EXEC eval 'debconf-set-selections <<< '\''grub-pc grub-pc/install_devices multiselect /dev/sda'\'
 
 		elif (( $G_HW_ARCH == 3 ))
@@ -2238,7 +2238,7 @@ _EOF_'
 		# RPi
 		if (( $G_HW_MODEL < 10 ))
 		then
-			# Apply minimum GPU memory split for server usage: This applies a custom dtoverlay to disable VCSM: https://github.com/MichaIng/DietPi/pull/3900
+			# Apply minimum GPU memory split for server usage: This applies a custom dtoverlay to disable VCSM: https://github.com/MichaIng/${G_GITREPO:=DietPi}/pull/3900
 			/boot/dietpi/func/dietpi-set_hardware gpumemsplit 16
 
 			# Disable RPi camera and codecs to add modules blacklist
@@ -2304,7 +2304,7 @@ _EOF_
 		then
 			G_EXEC eval 'echo '\''sprdwl_ng'\'' > /etc/modules-load.d/dietpi-enable_wifi.conf'
 
-			# Orange Pi Zero 2W: Expansion board Ethernet LEDs: https://github.com/MichaIng/DietPi/issues/7575
+			# Orange Pi Zero 2W: Expansion board Ethernet LEDs: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/7575
 			if (( $G_HW_MODEL == 88 ))
 			then
 				G_EXEC eval 'echo '\''ledtrig-netdev'\'' > /etc/modules-load.d/dietpi-eth-leds.conf'
@@ -2466,7 +2466,7 @@ _EOF_
 		G_DIETPI-NOTIFY 0 'Completed, disk can now be saved to .img for later use, or, reboot system to start first run of DietPi.'
 
 		# shellcheck disable=SC2016
-		G_DIETPI-NOTIFY 0 'To create an .img file, you can "poweroff" and run the following command from the host/external DietPi system:\n\t- bash -c "$(curl -sSf https://raw.githubusercontent.com/MichaIng/DietPi/master/.build/images/dietpi-imager)"'
+		G_DIETPI-NOTIFY 0 'To create an .img file, you can "poweroff" and run the following command from the host/external DietPi system:\n\t- bash -c "$(curl -sSf https://raw.githubusercontent.com/MichaIng/${G_GITREPO:=DietPi}/master/.build/images/dietpi-imager)"'
 	}
 
 	#------------------------------------------------------------------------------------------------

@@ -22,7 +22,7 @@
 		. /boot/dietpi/func/dietpi-globals
 	else
 		[[ $G_GITOWNER && $G_GITBRANCH ]] || { echo '[FAILED] You must export or pass G_GITOWNER and G_GITBRANCH to the script'; exit 1; }
-		curl -sSfo /tmp/dietpi-globals "https://raw.githubusercontent.com/$G_GITOWNER/DietPi/$G_GITBRANCH/dietpi/func/dietpi-globals" || exit 1
+		curl -sSfo /tmp/dietpi-globals "https://raw.githubusercontent.com/$G_GITOWNER/${G_GITREPO:=DietPi}/$G_GITBRANCH/dietpi/func/dietpi-globals" || exit 1
 		# shellcheck disable=SC1091
 		. /tmp/dietpi-globals
 		G_EXEC rm /tmp/dietpi-globals
@@ -48,7 +48,7 @@
 
 	readonly FP_MNT_TMP="/tmp/${G_PROGRAM_NAME}_mnt"
 	readonly CLONEZILLA_REPO='https://sourceforge.net/projects/clonezilla/files/clonezilla_live_stable'
-	readonly DIETPI_REPO="https://raw.githubusercontent.com/$G_GITOWNER/DietPi/$G_GITBRANCH"
+	readonly DIETPI_REPO="https://raw.githubusercontent.com/$G_GITOWNER/${G_GITREPO:=DietPi}/$G_GITBRANCH"
 
 	Error_Exit()
 	{
@@ -409,7 +409,7 @@
 		# Shrink last filesystem to minimum
 		# - resize2fs: "Please run 'e2fsck -f /dev/loop0p1' first."
 		Run_fsck
-		# - Use sfdisk to detect last partition, as lsblk with "-r" option on Bullseye does not sort partitions well: https://github.com/MichaIng/DietPi/issues/7527
+		# - Use sfdisk to detect last partition, as lsblk with "-r" option on Bullseye does not sort partitions well: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/7527
 		local last_part_dev=$(sfdisk -lqo Device "$FP_SOURCE" | tail -1)
 		# - If this is a tailing DietPi setup partition, remove it and let it be recreated freshly in case. This makes it easier for dietpi-build to reuse the same image for multiple variants.
 		if [[ $(blkid -s LABEL -o value "$last_part_dev") == 'DIETPISETUP' ]]
@@ -536,7 +536,7 @@
 		# Add space for GPT backup partition table, or 1 sector for MBR
 		if [[ $PART_TABLE_TYPE == 'gpt' ]]
 		then
-			# Obtain first usable LBA, which defines the size of the GPT backup, else use 34 sectors as default: https://github.com/MichaIng/DietPi/issues/7024
+			# Obtain first usable LBA, which defines the size of the GPT backup, else use 34 sectors as default: https://github.com/MichaIng/${G_GITREPO:=DietPi}/issues/7024
 			local gpt_size=$(sfdisk -d "$FP_SOURCE" | mawk '/^first-lba/{print $2}')
 			# shellcheck disable=SC2015
 			(( $gpt_size )) && ((IMAGE_SIZE+=$gpt_size)) || ((IMAGE_SIZE+=34))

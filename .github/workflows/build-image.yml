@@ -42,6 +42,7 @@ jobs:
           # Model 2 = Raspberry Pi 2/3/4/5, -d 8 = Bookworm
           # Export all required environment variables for dietpi-build
           export G_GITOWNER=$GITHUB_REPOSITORY_OWNER
+          export G_GITREPO=palpable-os
           export G_GITBRANCH=master
           export G_HW_ARCH_NAME=$(uname -m)
           sudo -E bash ./.build/images/dietpi-build -m 2 -d 8
