@@ -49,31 +49,35 @@ jobs:
           # Restore rootfs directory name
           mv rootfs_custom rootfs
 
-      - name: Rename and compress image
+      - name: Rename compressed image
         run: |
           echo "Finding built image..."
-          # Find the generated image file (search for any DietPi RPi image)
-          IMAGE=$(find . -maxdepth 1 -name "DietPi_RPi*.img" -type f | head -n 1)
+          # Find the generated compressed image (dietpi-imager already compresses it)
+          IMAGE_XZ=$(find . -maxdepth 1 -name "DietPi_RPi*.img.xz" -type f | head -n 1)
 
-          if [ -z "$IMAGE" ]; then
-            echo "Error: No image file found!"
-            ls -la *.img || echo "No .img files found"
+          if [ -z "$IMAGE_XZ" ]; then
+            echo "Error: No compressed image file found!"
+            ls -la *.img* || echo "No image files found"
             exit 1
           fi
 
-          echo "Found image: $IMAGE"
+          echo "Found compressed image: $IMAGE_XZ"
 
           # Rename to Palpable OS naming
-          NEW_NAME="palpable-os-${{ steps.version.outputs.VERSION }}.img"
-          mv "$IMAGE" "$NEW_NAME"
+          NEW_NAME="palpable-os-${{ steps.version.outputs.VERSION }}.img.xz"
+          mv "$IMAGE_XZ" "$NEW_NAME"
 
-          echo "Compressing image..."
-          xz -9 -T0 "$NEW_NAME"
+          # Also rename the sha256 file if it exists
+          HASH_FILE="${IMAGE_XZ}.sha256"
+          if [ -f "$HASH_FILE" ]; then
+            mv "$HASH_FILE" "${NEW_NAME}.sha256"
+          else
+            # Generate checksum if not present
+            sha256sum "$NEW_NAME" > "${NEW_NAME}.sha256"
+          fi
 
-          # Calculate checksum
-          sha256sum "${NEW_NAME}.xz" > "${NEW_NAME}.xz.sha256"
-
-          echo "Build complete: ${NEW_NAME}.xz"
+          echo "Build complete: ${NEW_NAME}"
+          ls -lh palpable-os-*
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
