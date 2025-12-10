@@ -28,11 +28,16 @@ jobs:
             echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
           fi
 
+      - name: Setup DietPi environment
+        run: |
+          # Create symlink so dietpi-build can find dietpi-globals locally
+          sudo mkdir -p /boot
+          sudo ln -s "$PWD/dietpi" /boot/dietpi
+
       - name: Build Palpable OS for Raspberry Pi
         run: |
           echo "Building Palpable OS for Raspberry Pi 2/3/4/5 (ARMv8, Bookworm)..."
           # Model 2 = Raspberry Pi 2/3/4/5, -d 8 = Bookworm
-          # Use 'master' branch for build dependencies, regardless of tag
           sudo bash -c "G_GITOWNER=$GITHUB_REPOSITORY_OWNER G_GITBRANCH=master ./.build/images/dietpi-build -m 2 -d 8"
 
       - name: Rename and compress image
