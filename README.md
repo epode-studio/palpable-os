@@ -22,8 +22,8 @@ Palpable OS is a lightweight operating system for Raspberry Pi devices, designed
 
 ### Option 1: Download Pre-built Image
 
-1. Download the latest release from [Releases](https://github.com/paultnylund/palpable-os/releases)
-2. Flash to SD card using [Raspberry Pi Imager](https://www.raspberrypi.com/software/)
+1. Download the latest release from [Releases](https://github.com/epode-studio/palpable-os/releases)
+2. Flash to SD card using [Palpable Imager](https://github.com/epode-studio/palpable-imager/releases) or [Raspberry Pi Imager](https://www.raspberrypi.com/software/)
 3. Configure WiFi and device settings at [palpable.technology/devices/flash](https://palpable.technology/devices/flash)
 4. Copy config files to the boot partition
 5. Insert SD card and power on
@@ -65,23 +65,14 @@ This repository is a fork of [DietPi](https://github.com/MichaIng/DietPi). To bu
 
 ```bash
 # Clone the repository
-git clone https://github.com/paultnylund/palpable-os.git
+git clone https://github.com/epode-studio/palpable-os.git
 cd palpable-os
 
 # Build using GitHub Actions (push a tag)
 git tag v1.0.0
 git push origin v1.0.0
-```
 
-Or manually:
-
-```bash
-# Download DietPi base image
-wget https://dietpi.com/downloads/images/DietPi_RPi-ARMv8-Bookworm.img.xz
-xz -d DietPi_RPi-ARMv8-Bookworm.img.xz
-
-# Mount, customize, and compress
-# (See .github/workflows/build-image.yml for details)
+# The build system will automatically create a release with the OS image
 ```
 
 ## License
@@ -97,4 +88,4 @@ Palpable OS is based on DietPi and is licensed under the [GNU General Public Lic
 ## Support
 
 - [Palpable Support](https://palpable.technology/support)
-- [GitHub Issues](https://github.com/paultnylund/palpable-os/issues)
+- [GitHub Issues](https://github.com/epode-studio/palpable-os/issues)
