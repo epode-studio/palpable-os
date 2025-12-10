@@ -38,7 +38,11 @@ jobs:
         run: |
           echo "Building Palpable OS for Raspberry Pi 2/3/4/5 (ARMv8, Bookworm)..."
           # Model 2 = Raspberry Pi 2/3/4/5, -d 8 = Bookworm
-          sudo bash -c "G_GITOWNER=$GITHUB_REPOSITORY_OWNER G_GITBRANCH=master ./.build/images/dietpi-build -m 2 -d 8"
+          # Export all required environment variables for dietpi-build
+          export G_GITOWNER=$GITHUB_REPOSITORY_OWNER
+          export G_GITBRANCH=master
+          export G_HW_ARCH_NAME=$(uname -m)
+          sudo -E bash ./.build/images/dietpi-build -m 2 -d 8
 
       - name: Rename and compress image
         run: |
