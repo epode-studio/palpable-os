@@ -28,59 +28,36 @@ jobs:
             echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Install dependencies
+      - name: Build Palpable OS for Raspberry Pi
         run: |
-          sudo apt-get update
-          sudo apt-get install -y xz-utils qemu-user-static
+          echo "Building Palpable OS for Raspberry Pi 2/3/4/5 (ARMv8, Bookworm)..."
+          # Model 2 = Raspberry Pi 2/3/4/5, -d 8 = Bookworm, -e all = all editions
+          sudo bash -c "G_GITOWNER=$GITHUB_REPOSITORY_OWNER G_GITBRANCH=$GITHUB_REF_NAME ./.build/images/dietpi-build -m 2 -d 8"
 
-      - name: Download DietPi base image
+      - name: Rename and compress image
         run: |
-          echo "Downloading DietPi base image..."
-          wget -q https://dietpi.com/downloads/images/DietPi_RPi234-ARMv8-Bookworm.img.xz
-          echo "Extracting image..."
-          xz -d DietPi_RPi234-ARMv8-Bookworm.img.xz
+          echo "Finding built image..."
+          # Find the generated image file
+          IMAGE=$(find . -maxdepth 1 -name "DietPi_RPi-ARMv8*.img" -type f | head -n 1)
 
-      - name: Mount and customize image
-        run: |
-          # Create mount points
-          sudo mkdir -p /mnt/boot /mnt/root
+          if [ -z "$IMAGE" ]; then
+            echo "Error: No image file found!"
+            exit 1
+          fi
 
-          # Setup loop device
-          LOOP=$(sudo losetup -fP --show DietPi_RPi234-ARMv8-Bookworm.img)
-          echo "LOOP=$LOOP" >> $GITHUB_ENV
+          echo "Found image: $IMAGE"
 
-          # Mount partitions
-          sudo mount ${LOOP}p1 /mnt/boot
-          sudo mount ${LOOP}p2 /mnt/root
+          # Rename to Palpable OS naming
+          NEW_NAME="palpable-os-${{ steps.version.outputs.VERSION }}.img"
+          mv "$IMAGE" "$NEW_NAME"
 
-          # Copy boot files
-          echo "Copying boot customizations..."
-          sudo cp boot/dietpi.txt /mnt/boot/dietpi.txt
-          sudo cp boot/palpable-install.sh /mnt/boot/palpable-install.sh
-          sudo cp boot/palpable-banner.sh /mnt/boot/palpable-banner.sh
-          sudo chmod +x /mnt/boot/palpable-install.sh
-          sudo chmod +x /mnt/boot/palpable-banner.sh
-
-          # Copy rootfs files
-          echo "Copying rootfs customizations..."
-          sudo cp rootfs/etc/issue /mnt/root/etc/issue
-          sudo cp rootfs/etc/motd /mnt/root/etc/motd
-
-          # Update version in banner
-          sudo sed -i "s/PALPABLE_VERSION=\"1.0.0\"/PALPABLE_VERSION=\"${{ steps.version.outputs.VERSION }}\"/" /mnt/boot/palpable-install.sh
-
-          # Unmount
-          sudo umount /mnt/boot /mnt/root
-          sudo losetup -d $LOOP
-
-      - name: Compress image
-        run: |
           echo "Compressing image..."
-          mv DietPi_RPi234-ARMv8-Bookworm.img palpable-os-${{ steps.version.outputs.VERSION }}.img
-          xz -9 -T0 palpable-os-${{ steps.version.outputs.VERSION }}.img
+          xz -9 -T0 "$NEW_NAME"
 
           # Calculate checksum
-          sha256sum palpable-os-${{ steps.version.outputs.VERSION }}.img.xz > palpable-os-${{ steps.version.outputs.VERSION }}.img.xz.sha256
+          sha256sum "${NEW_NAME}.xz" > "${NEW_NAME}.xz.sha256"
+
+          echo "Build complete: ${NEW_NAME}.xz"
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -94,7 +71,10 @@ jobs:
 
             ### Download
 
-            Download `palpable-os-${{ steps.version.outputs.VERSION }}.img.xz` and flash it to your SD card using [Raspberry Pi Imager](https://www.raspberrypi.com/software/).
+            Download `palpable-os-${{ steps.version.outputs.VERSION }}.img.xz` and flash it to your SD card using:
+            - [Palpable Imager](https://github.com/epode-studio/palpable-imager/releases) (recommended)
+            - [Raspberry Pi Imager](https://www.raspberrypi.com/software/)
+            - [Balena Etcher](https://www.balena.io/etcher/)
 
             ### What's included
 
@@ -102,11 +82,12 @@ jobs:
             - Pre-configured for Palpable sensors
             - Auto-installs Node.js and I2C tools
             - Connects to Palpable cloud on first boot
+            - Compatible with Raspberry Pi 2, 3, 4, and 5
 
             ### First boot
 
             1. Flash the image to your SD card
-            2. Copy your `palpable-device.json` and WiFi config files to the boot partition
+            2. Copy your `palpable-device.json` and WiFi config files to the boot partition (optional)
             3. Insert SD card and power on
             4. Device will auto-configure and appear in your Palpable dashboard
 
