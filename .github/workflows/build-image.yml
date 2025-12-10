@@ -36,9 +36,9 @@ jobs:
       - name: Download DietPi base image
         run: |
           echo "Downloading DietPi base image..."
-          wget -q https://dietpi.com/downloads/images/DietPi_RPi-ARMv8-Bookworm.img.xz
+          wget -q https://dietpi.com/downloads/images/DietPi_RPi234-ARMv8-Bookworm.img.xz
           echo "Extracting image..."
-          xz -d DietPi_RPi-ARMv8-Bookworm.img.xz
+          xz -d DietPi_RPi234-ARMv8-Bookworm.img.xz
 
       - name: Mount and customize image
         run: |
@@ -46,7 +46,7 @@ jobs:
           sudo mkdir -p /mnt/boot /mnt/root
 
           # Setup loop device
-          LOOP=$(sudo losetup -fP --show DietPi_RPi-ARMv8-Bookworm.img)
+          LOOP=$(sudo losetup -fP --show DietPi_RPi234-ARMv8-Bookworm.img)
           echo "LOOP=$LOOP" >> $GITHUB_ENV
 
           # Mount partitions
@@ -76,7 +76,7 @@ jobs:
       - name: Compress image
         run: |
           echo "Compressing image..."
-          mv DietPi_RPi-ARMv8-Bookworm.img palpable-os-${{ steps.version.outputs.VERSION }}.img
+          mv DietPi_RPi234-ARMv8-Bookworm.img palpable-os-${{ steps.version.outputs.VERSION }}.img
           xz -9 -T0 palpable-os-${{ steps.version.outputs.VERSION }}.img
 
           # Calculate checksum
