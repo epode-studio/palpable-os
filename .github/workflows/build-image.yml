@@ -39,15 +39,15 @@ jobs:
       - name: Build Palpable OS for Raspberry Pi
         run: |
           echo "Building Palpable OS for Raspberry Pi 2/3/4/5 (ARMv8 64-bit, Bookworm)..."
-          # Model 4 = RPi234 (ARMv8 64-bit, supports RPi 2/3/4/5)
-          # Distro 7 = Bookworm (NOT 8 which is Trixie)
-          # Export all required environment variables for dietpi-build
+          # Model 0 = Generic RPi (supports all RPi models, auto-detects page size)
+          # Distro 7 = Bookworm
+          # Note: -m 4 doesn't work because the installer checks if /boot/firmware is mounted
+          # and in the build container, findmnt may not detect it properly
           export G_GITOWNER=$GITHUB_REPOSITORY_OWNER
           export G_GITREPO=palpable-os
           export G_GITBRANCH=master
           export G_HW_ARCH_NAME=$(uname -m)
-          # Run with verbose output to debug build issues
-          sudo -E bash -x ./.build/images/dietpi-build -m 4 -d 7
+          sudo -E bash ./.build/images/dietpi-build -m 0 -d 7
           # Restore rootfs directory name
           mv rootfs_custom rootfs
 
