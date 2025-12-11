@@ -649,7 +649,7 @@ _EOF_
 		#------------------------------------------------------------------------------------------------
 
 		G_EXEC_DESC='Downloading source code' G_EXEC curl -sSfLO "https://github.com/$G_GITOWNER/${G_GITREPO:=DietPi}/archive/$G_GITBRANCH.tar.gz"
-		local dir="DietPi-${G_GITBRANCH//\//-}" # GitHub translates forward slashes into dashes
+		local dir="${G_GITREPO:-DietPi}-${G_GITBRANCH//\//-}" # GitHub translates forward slashes into dashes
 		[[ -d $dir ]] && G_EXEC_DESC='Removing old source code' G_EXEC rm -R "$dir"
 		G_EXEC_DESC='Unpacking source code' G_EXEC tar xf "${G_GITBRANCH##*/}.tar.gz" # Support for Git branch names with forward slashes
 		G_EXEC_DESC='Removing unused files' G_EXEC rm -f "${G_GITBRANCH##*/}.tar.gz" "$dir/"{pre-patch_file,patch_file,server_version-6}
