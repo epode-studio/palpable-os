@@ -135,6 +135,7 @@ ExecStart=/usr/bin/node main.js
 Restart=always
 RestartSec=10
 Environment=NODE_ENV=production
+Environment=PALPABLE_PARTITION=A
 
 # Logging
 StandardOutput=append:/opt/palpable/logs/palpable.log
