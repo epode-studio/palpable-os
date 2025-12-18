@@ -55,7 +55,7 @@ log "I2C enabled"
 log "[2/6] Installing I2C tools..."
 
 apt-get update -qq
-apt-get install -y -qq i2c-tools
+apt-get install -y -qq i2c-tools bluetooth bluez libbluetooth-dev libudev-dev alsa-utils
 
 log "I2C tools installed"
 
