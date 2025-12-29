@@ -1,0 +1,100 @@
+#!/sbin/openrc-run
+#
+# WiFi Provisioning Access Point
+#
+# If no WiFi is configured, starts an AP for provisioning
+# Captive portal at http://192.168.4.1
+#
+
+name="wifi-provision"
+description="WiFi Provisioning AP"
+
+PROVISION_DIR="/data/palpable/provision"
+AP_SSID_PREFIX="Palpable-"
+
+depend() {
+    after networking
+    before palpable
+}
+
+start() {
+    # Skip if WiFi is already configured and working
+    if wpa_cli status 2>/dev/null | grep -q "wpa_state=COMPLETED"; then
+        einfo "WiFi connected, skipping provision mode"
+        return 0
+    fi
+
+    # Check if wpa_supplicant has any networks configured
+    if grep -q "network=" /etc/wpa_supplicant/wpa_supplicant.conf 2>/dev/null; then
+        einfo "WiFi configured, waiting for connection..."
+        # Give it time to connect
+        sleep 10
+        if wpa_cli status 2>/dev/null | grep -q "wpa_state=COMPLETED"; then
+            return 0
+        fi
+    fi
+
+    ebegin "Starting WiFi provisioning AP"
+
+    # Get device ID for SSID
+    DEVICE_ID=$(cat /data/palpable/config/device-id 2>/dev/null | tail -c 8)
+    AP_SSID="${AP_SSID_PREFIX}${DEVICE_ID:-Setup}"
+
+    # Stop wpa_supplicant
+    killall wpa_supplicant 2>/dev/null || true
+    sleep 1
+
+    # Configure interface for AP mode
+    ip link set wlan0 down
+    ip addr flush dev wlan0
+    ip addr add 192.168.4.1/24 dev wlan0
+    ip link set wlan0 up
+
+    # Start hostapd
+    mkdir -p /run/hostapd
+    cat > /run/hostapd/hostapd.conf << EOF
+interface=wlan0
+driver=nl80211
+ssid=${AP_SSID}
+hw_mode=g
+channel=7
+wmm_enabled=0
+macaddr_acl=0
+auth_algs=1
+ignore_broadcast_ssid=0
+wpa=0
+EOF
+
+    hostapd -B /run/hostapd/hostapd.conf
+
+    # Start DHCP server for clients
+    cat > /run/dnsmasq-provision.conf << EOF
+interface=wlan0
+dhcp-range=192.168.4.10,192.168.4.50,255.255.255.0,24h
+address=/#/192.168.4.1
+EOF
+
+    dnsmasq -C /run/dnsmasq-provision.conf
+
+    # Start provision web server (built into palpable-agent)
+    /usr/bin/palpable-agent --provision-mode &
+
+    einfo "Provisioning AP started: ${AP_SSID}"
+    einfo "Connect to WiFi and visit http://192.168.4.1"
+
+    eend 0
+}
+
+stop() {
+    ebegin "Stopping WiFi provisioning"
+
+    killall palpable-agent 2>/dev/null || true
+    killall dnsmasq 2>/dev/null || true
+    killall hostapd 2>/dev/null || true
+
+    # Restore normal WiFi mode
+    ip addr flush dev wlan0
+    ip link set wlan0 down
+
+    eend 0
+}

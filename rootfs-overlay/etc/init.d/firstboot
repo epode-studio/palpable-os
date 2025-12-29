@@ -1,0 +1,82 @@
+#!/sbin/openrc-run
+#
+# First boot configuration for Palpable OS
+#
+# Handles:
+# - WiFi provisioning from boot partition
+# - Device ID generation
+# - SSH key generation
+#
+
+name="firstboot"
+description="Palpable OS First Boot Setup"
+
+depend() {
+    before networking
+}
+
+start() {
+    # Check if already completed
+    if [ -f /data/palpable/.firstboot-done ]; then
+        return 0
+    fi
+
+    ebegin "Running first boot setup"
+
+    # Generate device ID if not present
+    if [ ! -f /data/palpable/config/device-id ]; then
+        # Use MAC address + random for unique ID
+        MAC=$(cat /sys/class/net/wlan0/address 2>/dev/null | tr -d ':' || echo "000000000000")
+        RANDOM_PART=$(head -c 4 /dev/urandom | xxd -p)
+        DEVICE_ID="pal-${MAC:6}-${RANDOM_PART}"
+        echo "${DEVICE_ID}" > /data/palpable/config/device-id
+        einfo "Generated device ID: ${DEVICE_ID}"
+    fi
+
+    # Check for WiFi credentials on boot partition
+    if [ -f /boot/wifi-credentials.txt ]; then
+        einfo "Found WiFi credentials, configuring..."
+
+        # Parse credentials (format: SSID:PASSWORD)
+        SSID=$(head -1 /boot/wifi-credentials.txt | cut -d: -f1)
+        PSK=$(head -1 /boot/wifi-credentials.txt | cut -d: -f2-)
+
+        if [ -n "${SSID}" ] && [ -n "${PSK}" ]; then
+            # Generate wpa_supplicant config
+            cat > /etc/wpa_supplicant/wpa_supplicant.conf << EOF
+ctrl_interface=/run/wpa_supplicant
+update_config=1
+country=US
+
+network={
+    ssid="${SSID}"
+    psk="${PSK}"
+    key_mgmt=WPA-PSK
+}
+EOF
+            einfo "WiFi configured for SSID: ${SSID}"
+
+            # Remove credentials file (security)
+            rm -f /boot/wifi-credentials.txt
+        fi
+    fi
+
+    # Check for bootstrap config
+    if [ -f /boot/bootstrap.json ]; then
+        einfo "Found bootstrap config, applying..."
+        cp /boot/bootstrap.json /data/palpable/config/bootstrap.json
+        rm -f /boot/bootstrap.json
+    fi
+
+    # Generate SSH host keys if missing
+    if [ ! -f /etc/ssh/ssh_host_ed25519_key ]; then
+        einfo "Generating SSH host keys..."
+        ssh-keygen -A >/dev/null 2>&1
+    fi
+
+    # Mark firstboot complete
+    touch /data/palpable/.firstboot-done
+    date > /data/palpable/.firstboot-done
+
+    eend 0
+}

@@ -1,0 +1,12 @@
+# Palpable OS Network Configuration
+#
+# WiFi is managed by wpa_supplicant + dhcpcd
+# This file is for fallback/manual configuration only
+#
+
+auto lo
+iface lo inet loopback
+
+# WiFi interface (managed by wpa_supplicant)
+auto wlan0
+iface wlan0 inet dhcp

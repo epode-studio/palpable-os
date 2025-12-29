@@ -1,91 +1,75 @@
 # Palpable OS
 
-**Smart Home Sensor Platform for Raspberry Pi**
-
-Palpable OS is a lightweight operating system for Raspberry Pi devices, designed to power the [Palpable](https://palpable.technology) smart home sensor platform. It's based on [DietPi](https://dietpi.com), optimized for headless sensor operation.
+Minimal Alpine Linux-based operating system for Raspberry Pi Zero 2 W.
 
 ## Features
 
-- **Lightweight**: ~600MB image, minimal resource usage
-- **Auto-Setup**: Connects to WiFi and cloud automatically on first boot
-- **I2C Ready**: Pre-configured for Qwiic/I2C sensor modules
-- **Cloud Connected**: Automatically syncs with your Palpable dashboard
-- **Secure**: Minimal attack surface, automatic updates
-
-## Supported Hardware
-
-- Raspberry Pi Zero 2 W (recommended)
-- Raspberry Pi 3/4/5
-- Any Raspberry Pi with WiFi
+- **Minimal Footprint** - ~50MB compressed image
+- **A/B Partitions** - Atomic updates with automatic rollback
+- **Read-only Root** - Reliable operation, survives power loss
+- **WiFi Provisioning** - Captive portal for initial setup
+- **Go Agent** - Single binary, no runtime dependencies
 
 ## Quick Start
 
-### Option 1: Download Pre-built Image
+### Download
 
-1. Download the latest release from [Releases](https://github.com/epode-studio/palpable-os/releases)
-2. Flash to SD card using [Palpable Imager](https://github.com/epode-studio/palpable-imager/releases) or [Raspberry Pi Imager](https://www.raspberrypi.com/software/)
-3. Configure WiFi and device settings at [palpable.technology/devices/flash](https://palpable.technology/devices/flash)
-4. Copy config files to the boot partition
-5. Insert SD card and power on
+Get the latest image from [Releases](https://github.com/epode-studio/palpable-os/releases).
 
-### Option 2: Use the Web Configurator
-
-1. Go to [palpable.technology/devices/flash](https://palpable.technology/devices/flash)
-2. Enter your device name and WiFi credentials
-3. Download and follow the setup instructions
-
-## First Boot
-
-On first boot, Palpable OS will:
-
-1. Connect to your WiFi network
-2. Install Node.js and dependencies
-3. Download the Palpable sensor software
-4. Start the Palpable service
-5. Connect to the Palpable cloud
-
-Your device will appear in your [Palpable Dashboard](https://palpable.technology/dashboard) within 5-10 minutes.
-
-## Default Credentials
-
-- **Username**: `root`
-- **Password**: `palpable`
-
-Please change the password after first login for security.
-
-## Documentation
-
-- [Palpable Documentation](https://palpable.technology/docs)
-- [DietPi Documentation](https://dietpi.com/docs/)
-- [Hardware Setup Guide](https://palpable.technology/docs/hardware)
-
-## Building from Source
-
-This repository is a fork of [DietPi](https://github.com/MichaIng/DietPi). To build your own image:
+### Flash
 
 ```bash
-# Clone the repository
-git clone https://github.com/epode-studio/palpable-os.git
-cd palpable-os
-
-# Build using GitHub Actions (push a tag)
-git tag v1.0.0
-git push origin v1.0.0
-
-# The build system will automatically create a release with the OS image
+# Decompress and flash to SD card
+xzcat palpable-os-*.img.xz | sudo dd of=/dev/sdX bs=4M status=progress
+sync
 ```
+
+### First Boot
+
+1. Insert SD card in Raspberry Pi Zero 2 W
+2. Power on and wait ~30 seconds
+3. Connect to `Palpable-XXXX` WiFi network
+4. Visit http://192.168.4.1 to configure
+
+## Building
+
+### On Linux
+
+```bash
+# Build Go agent + OS image
+make build
+```
+
+### On macOS (via Docker)
+
+```bash
+make docker-build
+```
+
+## Partition Layout
+
+| Partition | Mount | Size | Purpose |
+|-----------|-------|------|---------|
+| mmcblk0p1 | /boot | 256MB | Boot (FAT32, shared) |
+| mmcblk0p2 | / | 512MB | Root A (ext4) |
+| mmcblk0p3 | - | 512MB | Root B (ext4) |
+| mmcblk0p4 | /data | remaining | Persistent data |
+
+## OTA Updates
+
+The agent receives updates via WebSocket from the cloud:
+
+1. Download to inactive root partition (A or B)
+2. Verify ECDSA signature
+3. Set boot flag for new partition
+4. Reboot
+5. If boot fails 3x → automatic rollback
+
+## Related Repositories
+
+- [palpable](https://github.com/epode-studio/palpable) - Main monorepo (web app, runtime, agent)
+- [palpable-bootstrap](https://github.com/epode-studio/palpable-bootstrap) - Initramfs bootstrapper
 
 ## License
 
-Palpable OS is based on DietPi and is licensed under the [GNU General Public License v2.0](LICENSE).
-
-## Credits
-
-- [DietPi](https://dietpi.com) - The base operating system
-- [Raspberry Pi Foundation](https://www.raspberrypi.org) - Hardware platform
-- [SparkFun](https://www.sparkfun.com) - Qwiic sensor ecosystem
-
-## Support
-
-- [Palpable Support](https://palpable.technology/support)
-- [GitHub Issues](https://github.com/epode-studio/palpable-os/issues)
+GPLv2 - Same as Alpine Linux and Linux kernel.

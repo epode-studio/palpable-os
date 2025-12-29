@@ -1,0 +1,18 @@
+# Build output
+output/
+cache/
+*.img
+*.img.xz
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+*.pem
+*.key
